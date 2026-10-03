@@ -1,0 +1,1274 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>TrialBench EDC</title>
+<style>
+:root{
+  --ink:#182420;
+  --paper:#f1f0ea;
+  --panel:#ffffff;
+  --line:#d9d6ca;
+  --muted:#6d7266;
+  --accent:#0d6e5c;
+  --accent-soft:#dbeee7;
+  --accent-ink:#084237;
+  --good:#2f7d4f;
+  --good-soft:#e2f2e6;
+  --warn:#9a6a1f;
+  --warn-soft:#fbedd3;
+  --crit:#b23a3a;
+  --crit-soft:#fbe2e2;
+  --sidebar:#12201c;
+  --sidebar-ink:#dfe8e3;
+  --sidebar-muted:#8ba79b;
+  --sidebar-active:#1c332c;
+  --shadow: 0 1px 2px rgba(20,30,25,.06), 0 6px 20px rgba(20,30,25,.05);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --ink:#e7ece8;
+    --paper:#0f1613;
+    --panel:#161f1b;
+    --line:#2a352f;
+    --muted:#8b9490;
+    --accent:#4fd6b8;
+    --accent-soft:#163229;
+    --accent-ink:#a7ecdc;
+    --good:#5cc281;
+    --good-soft:#173427;
+    --warn:#e0ab52;
+    --warn-soft:#3a2c14;
+    --crit:#e57979;
+    --crit-soft:#3a1f1f;
+    --sidebar:#0a1210;
+    --sidebar-ink:#dfe8e3;
+    --sidebar-muted:#6f8a7e;
+    --sidebar-active:#152420;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e7ece8;
+  --paper:#0f1613;
+  --panel:#161f1b;
+  --line:#2a352f;
+  --muted:#8b9490;
+  --accent:#4fd6b8;
+  --accent-soft:#163229;
+  --accent-ink:#a7ecdc;
+  --good:#5cc281;
+  --good-soft:#173427;
+  --warn:#e0ab52;
+  --warn-soft:#3a2c14;
+  --crit:#e57979;
+  --crit-soft:#3a1f1f;
+  --sidebar:#0a1210;
+  --sidebar-ink:#dfe8e3;
+  --sidebar-muted:#6f8a7e;
+  --sidebar-active:#152420;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+.tnum{font-variant-numeric:tabular-nums;}
+h1,h2,h3{font-weight:600;text-wrap:balance;margin:0;}
+a{color:inherit;}
+button{font-family:inherit;}
+#app{display:flex;min-height:100%;}
+
+/* ---------- Sidebar ---------- */
+#sidebar{
+  width:230px;flex:none;background:var(--sidebar);color:var(--sidebar-ink);
+  display:flex;flex-direction:column;padding:18px 14px;gap:4px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 18px;}
+.brand .mark{
+  width:30px;height:30px;border-radius:8px;background:var(--accent);
+  color:#08221c;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:13px;font-family:"IBM Plex Mono",monospace;flex:none;
+}
+.brand .name{font-weight:600;font-size:15px;letter-spacing:.2px;}
+.brand .study{font-size:10.5px;color:var(--sidebar-muted);font-family:"IBM Plex Mono",monospace;}
+.navlink{
+  display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
+  color:var(--sidebar-muted);text-decoration:none;font-size:13.2px;cursor:pointer;
+  border:none;background:none;text-align:left;width:100%;font-weight:500;
+}
+.navlink:hover{background:rgba(255,255,255,.05);color:var(--sidebar-ink);}
+.navlink.active{background:var(--sidebar-active);color:#fff;}
+.navlink .ico{width:16px;text-align:center;flex:none;opacity:.9;}
+.navlink .count{
+  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  background:rgba(255,255,255,.08);padding:1px 6px;border-radius:20px;
+}
+.navlink .count.hot{background:var(--crit);color:#fff;}
+.navdivider{height:1px;background:rgba(255,255,255,.08);margin:10px 4px;}
+.sidebar-foot{margin-top:auto;padding:10px 8px 0;font-size:10.5px;color:var(--sidebar-muted);}
+.sidebar-foot button{
+  background:none;border:1px solid rgba(255,255,255,.15);color:var(--sidebar-muted);
+  border-radius:6px;padding:5px 8px;font-size:10.5px;cursor:pointer;width:100%;margin-top:8px;
+}
+.sidebar-foot button:hover{color:#fff;border-color:rgba(255,255,255,.35);}
+
+/* mobile sidebar */
+#sidebarToggle{display:none;}
+#sidebarScrim{display:none;}
+
+/* ---------- Main ---------- */
+#main{flex:1;min-width:0;display:flex;flex-direction:column;}
+#topbar{
+  display:flex;align-items:center;gap:12px;padding:14px 24px;
+  border-bottom:1px solid var(--line);background:var(--paper);
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
+}
+#topbar h1{font-size:17px;}
+#topbar .sub{color:var(--muted);font-size:12px;}
+#topbar .spacer{flex:1;}
+.searchbox{
+  display:flex;align-items:center;gap:6px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:180px;
+}
+.searchbox input{border:none;outline:none;background:none;color:var(--ink);font-size:12.5px;width:100%;font-family:inherit;}
+.searchbox .ico{color:var(--muted);font-size:12px;}
+#content{padding:22px 24px 60px;max-width:1180px;width:100%;margin:0 auto;}
+
+/* ---------- shared bits ---------- */
+.grid{display:grid;gap:14px;}
+.cards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:16px;box-shadow:var(--shadow);
+}
+.card .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+.card .value{font-size:26px;font-weight:600;margin-top:6px;font-family:"IBM Plex Mono",monospace;}
+.card .value.crit{color:var(--crit);}
+.card .value.good{color:var(--good);}
+.card .value.warn{color:var(--warn);}
+.card .foot{margin-top:6px;font-size:11.5px;color:var(--muted);}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+.panel > .panel-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+.panel > .panel-head h2{font-size:14.5px;}
+.panel > .panel-head .sub{color:var(--muted);font-size:12px;}
+.panel-body{padding:16px 18px;}
+
+table{width:100%;border-collapse:collapse;font-size:12.8px;}
+th{
+  text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr.rowlink{cursor:pointer;}
+tr.rowlink:hover{background:var(--accent-soft);}
+.tablewrap{overflow-x:auto;}
+
+.pill{
+  display:inline-flex;align-items:center;gap:5px;font-size:10.8px;font-weight:600;
+  padding:3px 9px;border-radius:20px;white-space:nowrap;letter-spacing:.01em;
+}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
+.pill.neutral{background:var(--line);color:var(--muted);}
+.pill.good{background:var(--good-soft);color:var(--good);}
+.pill.warn{background:var(--warn-soft);color:var(--warn);}
+.pill.crit{background:var(--crit-soft);color:var(--crit);}
+.pill.accent{background:var(--accent-soft);color:var(--accent-ink);}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);padding:7px 13px;border-radius:8px;
+  font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#08221c;}
+.btn.primary:hover{filter:brightness(1.05);}
+.btn.ghost{border-color:transparent;background:none;}
+.btn.small{padding:4px 9px;font-size:11.5px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .navlink:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+
+.crumbs{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:14px;flex-wrap:wrap;}
+.crumbs a{cursor:pointer;color:var(--muted);}
+.crumbs a:hover{color:var(--accent-ink);text-decoration:underline;}
+.crumbs .sep{opacity:.5;}
+.crumbs .current{color:var(--ink);font-weight:600;}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;margin-bottom:16px;}
+.tab{
+  padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--muted);
+  border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;font-family:inherit;
+}
+.tab:hover{color:var(--ink);}
+.tab.active{color:var(--accent-ink);border-bottom-color:var(--accent);}
+
+.field-row{display:grid;grid-template-columns:180px 1fr 30px;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line);}
+.field-row:last-child{border-bottom:none;}
+.field-row label{font-size:12.5px;font-weight:600;padding-top:8px;}
+.field-row .req{color:var(--crit);}
+.field-input input[type=text],.field-input input[type=number],.field-input input[type=date],.field-input select,.field-input textarea{
+  width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;
+  background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;
+}
+.field-input textarea{min-height:56px;resize:vertical;}
+.field-input input:focus,.field-input select:focus,.field-input textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.field-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.field-issue{
+  font-size:11.3px;color:var(--crit);margin-top:5px;display:flex;gap:5px;align-items:flex-start;
+  background:var(--crit-soft);padding:5px 8px;border-radius:6px;
+}
+.flagbtn{
+  border:1px solid var(--line);background:var(--panel);color:var(--muted);
+  width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px;margin-top:2px;
+}
+.flagbtn:hover{border-color:var(--accent);color:var(--accent-ink);}
+.flagbtn.active{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);}
+
+.logtable-actions{display:flex;gap:6px;justify-content:flex-end;}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);font-size:13px;}
+.empty .big{font-size:26px;margin-bottom:6px;}
+
+.matrix{border-collapse:collapse;}
+.matrix th, .matrix td{text-align:center;}
+.matrix td.name{text-align:left;font-family:"IBM Plex Mono",monospace;font-weight:600;}
+.cell{
+  width:30px;height:22px;border-radius:5px;margin:0 auto;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;
+}
+.cell.na{background:var(--line);color:var(--muted);cursor:default;}
+.cell.notstarted{background:var(--panel);border:1px dashed var(--line);color:var(--muted);}
+.cell.clean{background:var(--good);}
+.cell.query{background:var(--crit);}
+.cell.answered{background:var(--warn);}
+
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:9px;
+  font-size:12.8px;font-weight:600;box-shadow:var(--shadow);z-index:50;
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+
+.querycard{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--panel);}
+.querycard .qtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.querycard .qloc{font-size:11.5px;color:var(--muted);margin-top:3px;font-family:"IBM Plex Mono",monospace;}
+.querycard .qtext{font-size:13px;margin-top:9px;}
+.querycard .qmeta{font-size:11px;color:var(--muted);margin-top:8px;}
+.querycard .qactions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;}
+.querycard textarea{width:100%;margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font-family:inherit;font-size:12.5px;min-height:50px;}
+
+.filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filterbar select, .filterbar input{
+  padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--panel);
+  color:var(--ink);font-size:12px;font-family:inherit;
+}
+
+.kv{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;font-size:13px;}
+.kv dt{color:var(--muted);}
+.kv dd{margin:0;font-weight:500;}
+
+[hidden]{display:none!important;}
+
+@media (max-width:820px){
+  #sidebar{
+    position:fixed;left:0;top:0;bottom:0;z-index:30;transform:translateX(-104%);
+    transition:transform .2s ease;box-shadow:0 0 40px rgba(0,0,0,.4);
+  }
+  #sidebar.open{transform:translateX(0);}
+  #sidebarToggle{
+    display:flex;align-items:center;justify-content:center;width:34px;height:34px;
+    border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;flex:none;
+  }
+  #sidebarScrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:25;}
+  #content{padding:16px 14px 48px;}
+  #topbar{padding:12px 14px;}
+  .searchbox{min-width:0;}
+  .field-row{grid-template-columns:1fr;gap:6px;}
+  .field-row label{padding-top:0;}
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+
+<div id="app">
+  <div id="sidebarScrim" onclick="closeSidebar()"></div>
+  <nav id="sidebar">
+    <div class="brand">
+      <div class="mark">TB</div>
+      <div>
+        <div class="name">TrialBench EDC</div>
+        <div class="study">TB-CARDIO-201</div>
+      </div>
+    </div>
+    <button class="navlink" data-route="dashboard"><span class="ico">&#9633;</span>Dashboard</button>
+    <button class="navlink" data-route="subjects"><span class="ico">&#9782;</span>Subjects<span class="count" id="navSubjCount"></span></button>
+    <button class="navlink" data-route="queries"><span class="ico">&#9888;</span>Queries<span class="count hot" id="navQueryCount"></span></button>
+    <button class="navlink" data-route="study"><span class="ico">&#9776;</span>Study Info</button>
+    <div class="navdivider"></div>
+    <div style="padding:0 10px;font-size:10.5px;color:var(--sidebar-muted);line-height:1.6;">
+      Practice sandbox for EDC data entry, CDM edit checks &amp; query resolution. Nothing here is a real patient.
+    </div>
+    <div class="sidebar-foot">
+      Data is saved only in this browser.
+      <button onclick="resetStudy()">Reset sample study</button>
+    </div>
+  </nav>
+
+  <div id="main">
+    <div id="topbar">
+      <button id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="sub" id="pageSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="searchbox">
+        <span class="ico">&#8981;</span>
+        <input id="globalSearch" type="text" placeholder="Jump to subject ID…" onkeydown="if(event.key==='Enter')jumpToSubject(this.value)">
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   TrialBench EDC — a practice sandbox for EDC data entry / CDM edit checks
+   / query management. Single-file, client-side, no data leaves the browser.
+   ========================================================================= */
+
+const STORAGE_KEY = 'trialbench_v1';
+
+/* ---------------- Study configuration ---------------- */
+
+const SITES = [
+  {id:'101', name:'Bengaluru Clinical Research Unit'},
+  {id:'202', name:'Chennai Metro Health Centre'}
+];
+
+const VISITS = [
+  {id:'screening', label:'Screening', day:-14, forms:['demographics','vitals','physexam','hematology','chemistry']},
+  {id:'baseline',  label:'Baseline (Day 1)', day:1, forms:['vitals','physexam','hematology','chemistry']},
+  {id:'week4',     label:'Week 4', day:28, forms:['vitals','physexam']},
+  {id:'week8',     label:'Week 8', day:56, forms:['vitals','physexam','hematology','chemistry']},
+  {id:'week12',    label:'Week 12 (EOS)', day:84, forms:['vitals','physexam','hematology','chemistry']}
+];
+const LOG_FORMS = ['ae','conmed'];
+
+const FORM_META = {
+  demographics:{label:'Demographics'}, vitals:{label:'Vital Signs'}, physexam:{label:'Physical Exam'},
+  hematology:{label:'Hematology'}, chemistry:{label:'Chemistry'}, ae:{label:'Adverse Events'}, conmed:{label:'Concomitant Meds'}
+};
+
+const SCHEMAS = {
+  demographics:[
+    {name:'consentDate', label:'Informed consent date', type:'date', required:true},
+    {name:'dob', label:'Date of birth', type:'date', required:true},
+    {name:'sex', label:'Sex', type:'select', options:['Male','Female'], required:true},
+    {name:'race', label:'Race', type:'select', options:['Asian','White','Black or African American','Other'], required:true},
+    {name:'heightCm', label:'Height (cm)', type:'number', required:true},
+    {name:'weightKg', label:'Weight (kg)', type:'number', required:true}
+  ],
+  vitals:[
+    {name:'sbp', label:'Systolic BP (mmHg)', type:'number', required:true},
+    {name:'dbp', label:'Diastolic BP (mmHg)', type:'number', required:true},
+    {name:'hr', label:'Heart rate (bpm)', type:'number', required:true},
+    {name:'rr', label:'Respiratory rate (/min)', type:'number', required:true},
+    {name:'tempC', label:'Temperature (°C)', type:'number', required:true},
+    {name:'weightKg', label:'Weight (kg)', type:'number', required:true}
+  ],
+  physexam:[
+    {name:'general', label:'General appearance', type:'select', options:['Normal','Abnormal'], required:true},
+    {name:'details', label:'Abnormal findings', type:'textarea', requiredIf:v=>v.general==='Abnormal'}
+  ],
+  hematology:[
+    {name:'hgb', label:'Hemoglobin (g/dL)', type:'number', required:true},
+    {name:'wbc', label:'WBC (x10⁹/L)', type:'number', required:true},
+    {name:'plt', label:'Platelets (x10⁹/L)', type:'number', required:true}
+  ],
+  chemistry:[
+    {name:'glucose', label:'Glucose (mg/dL)', type:'number', required:true},
+    {name:'creatinine', label:'Creatinine (mg/dL)', type:'number', required:true},
+    {name:'potassium', label:'Potassium (mmol/L)', type:'number', required:true},
+    {name:'alt', label:'ALT (U/L)', type:'number', required:true}
+  ]
+};
+
+const AE_SCHEMA = [
+  {name:'term', label:'Adverse event term', type:'text', required:true},
+  {name:'startDate', label:'Start date', type:'date', required:true},
+  {name:'ongoing', label:'Ongoing?', type:'select', options:['Yes','No'], required:true},
+  {name:'endDate', label:'End date', type:'date', requiredIf:v=>v.ongoing==='No'},
+  {name:'severity', label:'Severity', type:'select', options:['Mild','Moderate','Severe'], required:true},
+  {name:'serious', label:'Serious?', type:'select', options:['Yes','No'], required:true},
+  {name:'causality', label:'Causality', type:'select', options:['Not related','Possibly related','Related'], required:true},
+  {name:'outcome', label:'Outcome', type:'select', options:['Recovered','Recovering','Not recovered','Fatal','Unknown'], requiredIf:v=>v.serious==='Yes'},
+  {name:'action', label:'Action taken', type:'select', options:['None','Dose adjusted','Drug withdrawn','Concomitant medication given']}
+];
+const CONMED_SCHEMA = [
+  {name:'medication', label:'Medication', type:'text', required:true},
+  {name:'indication', label:'Indication', type:'text', required:true},
+  {name:'dose', label:'Dose', type:'text', required:true},
+  {name:'route', label:'Route', type:'select', options:['Oral','IV','Topical','Subcutaneous','Other'], required:true},
+  {name:'startDate', label:'Start date', type:'date', required:true},
+  {name:'ongoing', label:'Ongoing?', type:'select', options:['Yes','No'], required:true},
+  {name:'endDate', label:'End date', type:'date', requiredIf:v=>v.ongoing==='No'}
+];
+
+/* range checks: [min,max,label] beyond which a system query fires */
+const RANGES = {
+  sbp:[80,190,'mmHg'], dbp:[45,115,'mmHg'], hr:[45,140,'bpm'], rr:[10,28,'breaths/min'],
+  tempC:[35.5,39.0,'°C'], weightKg:[35,180,'kg'],
+  hgbM:[13,17.5,'g/dL'], hgbF:[11.5,15.5,'g/dL'], wbc:[4,11,'x10⁹/L'], plt:[140,420,'x10⁹/L'],
+  glucose:[65,145,'mg/dL'], creatinine:[0.5,1.4,'mg/dL'], potassium:[3.4,5.2,'mmol/L'], alt:[5,60,'U/L']
+};
+
+/* ---------------- tiny deterministic RNG for the seed dataset ---------------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rng = mulberry32(20260917);
+function pick(arr){return arr[Math.floor(rng()*arr.length)];}
+function randInt(a,b){return Math.floor(a+rng()*(b-a+1));}
+function fixed(n,d){return Math.round(n*Math.pow(10,d))/Math.pow(10,d);}
+function addDays(dateStr,n){const d=new Date(dateStr+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function fmtDate(s){ if(!s) return '—'; const d=new Date(s+'T00:00:00'); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function ageFrom(dob,ref){ if(!dob) return null; const d=new Date(dob+'T00:00:00'); const r=new Date((ref||todayStr())+'T00:00:00'); let age=r.getFullYear()-d.getFullYear(); const m=r.getMonth()-d.getMonth(); if(m<0||(m===0&&r.getDate()<d.getDate())) age--; return age;}
+function uid(prefix){return prefix+'_'+Math.random().toString(36).slice(2,9);}
+
+const FIRST = ['Aditi','Rohan','Meera','Kabir','Ishita','Vivaan','Sneha','Arjun','Divya','Farhan','Priya','Karthik','Lakshmi','Naveen','Ritu','Sameer'];
+const LAST = ['Rao','Nair','Iyer','Khan','Menon','Pillai','Reddy','Sharma','Fernandes','Gowda'];
+
+function buildSeedStudy(){
+  const subjects = [];
+  const n = 16;
+  for(let i=1;i<=n;i++){
+    const site = i<=9 ? SITES[0] : SITES[1];
+    const seq = site.id==='101' ? i : i-9;
+    const subjectId = site.id+'-'+String(seq).padStart(3,'0');
+    const enrollDate = addDays('2026-04-01', i*3);
+    const sex = pick(['Male','Female']);
+    const dobYear = 2026 - randInt(24,74);
+    const dob = `${dobYear}-${String(randInt(1,12)).padStart(2,'0')}-${String(randInt(1,28)).padStart(2,'0')}`;
+    // overall trajectory
+    let status = 'Enrolled';
+    let lastVisitIdx = randInt(2,4); // how far they've progressed
+    if(i===4) status='Screen Failed';
+    else if(i===9) status='Discontinued';
+    else if(i===13) status='Withdrawn';
+    else if(lastVisitIdx>=4) status='Completed';
+
+    const subj = {
+      id: uid('subj'), subjectId, site: site.id, sex, dob, enrollDate, status,
+      forms: {}, visitDates:{}, ae: [], conmed: []
+    };
+
+    const screenFail = status==='Screen Failed';
+    const stopIdx = screenFail?0:(status==='Discontinued'?randInt(1,2):(status==='Withdrawn'?randInt(1,3):lastVisitIdx));
+
+    VISITS.forEach((v,vi)=>{
+      if(vi>stopIdx) return; // visit not reached yet
+      subj.visitDates[v.id] = addDays(enrollDate, v.day);
+      v.forms.forEach(formName=>{
+        // 12% chance a not-yet-entered form (simulates a site behind on entry)
+        if(vi===stopIdx && rng()<0.35) return;
+        const data = {};
+        if(formName==='demographics'){
+          const screenDate = subj.visitDates[v.id];
+          data.consentDate = addDays(screenDate, -randInt(0,3));
+          data.dob = dob; data.sex = sex;
+          data.race = pick(['Asian','Asian','Asian','White','Other']);
+          data.heightCm = randInt(150,188);
+          data.weightKg = randInt(52,95);
+          if(rng()<0.15) data.consentDate = addDays(screenDate, randInt(1,4)); // consent AFTER visit -> error
+        } else if(formName==='vitals'){
+          data.sbp = randInt(105,150); data.dbp = randInt(65,95);
+          data.hr = randInt(58,96); data.rr = randInt(13,20);
+          data.tempC = fixed(36.4+rng()*1.0,1); data.weightKg = randInt(52,95);
+          if(rng()<0.18) data.sbp = pick([65,68,205,212]); // out of range
+          if(rng()<0.1) data.hr = pick([30,175]);
+        } else if(formName==='physexam'){
+          data.general = rng()<0.85 ? 'Normal' : 'Abnormal';
+          if(data.general==='Abnormal' && rng()<0.4) data.details=''; // missing required detail
+          else if(data.general==='Abnormal') data.details='Mild pedal edema noted, monitoring.';
+        } else if(formName==='hematology'){
+          data.hgb = fixed((sex==='Male'?14.5:12.8)+rng()*2-1,1);
+          data.wbc = fixed(6+rng()*4,1); data.plt = randInt(180,360);
+          if(rng()<0.15) data.hgb = fixed(sex==='Male'?10.2:9.4,1);
+        } else if(formName==='chemistry'){
+          data.glucose = randInt(78,130); data.creatinine = fixed(0.7+rng()*0.5,2);
+          data.potassium = fixed(3.7+rng()*1.0,1); data.alt = randInt(12,45);
+          if(rng()<0.12) data.glucose = pick([58,168]);
+        }
+        subj.forms[v.id+'/'+formName] = {data, savedAt: new Date().toISOString()};
+      });
+    });
+
+    // AE log: some subjects have 0-2 AEs
+    const aeCount = status==='Screen Failed' ? 0 : randInt(0,2);
+    for(let a=0;a<aeCount;a++){
+      const start = addDays(enrollDate, randInt(2,70));
+      const ongoing = rng()<0.3?'Yes':'No';
+      const serious = rng()<0.15?'Yes':'No';
+      const ae = {
+        id: uid('ae'), term: pick(['Headache','Nausea','Dizziness','Fatigue','Mild rash','Insomnia','Back pain']),
+        startDate: start, ongoing, endDate: ongoing==='No'? addDays(start, randInt(1,10)) : '',
+        severity: pick(['Mild','Mild','Moderate','Severe']), serious,
+        causality: pick(['Not related','Possibly related','Related']),
+        outcome: serious==='Yes' ? (rng()<0.3?'':pick(['Recovered','Recovering','Not recovered'])) : (rng()<0.6?'Recovered':''),
+        action:'None'
+      };
+      if(rng()<0.15) ae.startDate = addDays(enrollDate,-randInt(1,10)); // AE before enrollment -> error
+      subj.ae.push(ae);
+    }
+    // ConMed log
+    const cmCount = randInt(0,2);
+    for(let c=0;c<cmCount;c++){
+      const start = addDays(enrollDate,-randInt(0,200));
+      const ongoing = rng()<0.7?'Yes':'No';
+      subj.conmed.push({
+        id: uid('cm'), medication: pick(['Amlodipine','Metformin','Atorvastatin','Aspirin','Levothyroxine','Omeprazole']),
+        indication: pick(['Hypertension','Diabetes','Dyslipidemia','Prophylaxis','Hypothyroidism','GERD']),
+        dose: pick(['5 mg OD','10 mg OD','500 mg BID','75 mg OD','25 mcg OD','20 mg OD']),
+        route:'Oral', startDate: start, ongoing, endDate: ongoing==='No'? addDays(start,randInt(10,60)) : ''
+      });
+    }
+
+    subjects.push(subj);
+  }
+  return {
+    protocol: {
+      id:'TB-CARDIO-201',
+      title:'A Phase II, Randomized, Double-Blind Study of XJ-9 in Adult Patients with Stage 2 Hypertension',
+      sponsor:'Meridian Cardiovascular Therapeutics (fictional, for practice only)',
+      phase:'Phase II', indication:'Stage 2 Hypertension',
+      sites: SITES
+    },
+    subjects,
+    queries: [],
+    createdAt: new Date().toISOString()
+  };
+}
+
+/* ---------------- persistence ---------------- */
+let STATE = null;
+let storageOK = true;
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ STATE = JSON.parse(raw); return; }
+  }catch(e){ storageOK=false; }
+  STATE = buildSeedStudy();
+  runInitialChecks();
+  saveState();
+}
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }
+  catch(e){ storageOK=false; }
+}
+function resetStudy(){
+  if(!confirm('Reset the sample study? All entries and queries you made will be replaced with the original seed data.')) return;
+  STATE = buildSeedStudy();
+  runInitialChecks();
+  saveState();
+  navigate('dashboard');
+  toast('Sample study reset');
+}
+
+/* ---------------- edit-check engine ---------------- */
+function fieldValue(v){ return v===undefined||v===null?'':v; }
+
+function checkForm(schema, formName, values){
+  const issues = [];
+  schema.forEach(f=>{
+    const val = values[f.name];
+    const empty = val===undefined || val===null || val==='';
+    const isReq = f.required || (f.requiredIf && f.requiredIf(values));
+    if(isReq && empty){ issues.push({field:f.name, message:`${f.label} is required.`}); return; }
+    if(empty) return;
+    if(f.type==='number'){
+      const num = Number(val);
+      let rangeKey = f.name;
+      if(formName==='hematology' && f.name==='hgb') rangeKey = values.__sex==='Female'?'hgbF':'hgbM';
+      const r = RANGES[rangeKey];
+      if(r && (num<r[0] || num>r[1])){
+        issues.push({field:f.name, message:`${f.label} = ${val} is outside the expected range (${r[0]}–${r[1]} ${r[2]}). Please verify.`});
+      }
+    }
+  });
+  // cross-field: demographics consent date vs visit date handled by caller
+  return issues;
+}
+
+function checkDemographics(values, visitDate){
+  const issues = checkForm(SCHEMAS.demographics, 'demographics', values);
+  if(values.consentDate && visitDate && values.consentDate > visitDate){
+    issues.push({field:'consentDate', message:`Consent date (${fmtDate(values.consentDate)}) is after the visit date (${fmtDate(visitDate)}).`});
+  }
+  if(values.dob){
+    const age = ageFrom(values.dob, visitDate);
+    if(age!==null && (age<18||age>75)) issues.push({field:'dob', message:`Calculated age is ${age} — outside the protocol eligibility range (18–75 years).`});
+  }
+  return issues;
+}
+function checkVitals(values){ return checkForm(SCHEMAS.vitals,'vitals',values); }
+function checkPhysexam(values){ return checkForm(SCHEMAS.physexam,'physexam',values); }
+function checkHematology(values, sex){ const v=Object.assign({},values,{__sex:sex}); return checkForm(SCHEMAS.hematology,'hematology',v); }
+function checkChemistry(values){ return checkForm(SCHEMAS.chemistry,'chemistry',values); }
+
+function checkAE(values, enrollDate){
+  const issues = checkForm(AE_SCHEMA,'ae',values);
+  if(values.startDate && enrollDate && values.startDate < enrollDate){
+    issues.push({field:'startDate', message:`AE start date (${fmtDate(values.startDate)}) is before the subject's enrollment date (${fmtDate(enrollDate)}).`});
+  }
+  if(values.endDate && values.startDate && values.endDate < values.startDate){
+    issues.push({field:'endDate', message:`End date is before the start date.`});
+  }
+  return issues;
+}
+function checkConmed(values){
+  return checkForm(CONMED_SCHEMA,'conmed',values);
+}
+
+function formCheckFn(formName){
+  return {demographics:checkDemographics, vitals:checkVitals, physexam:checkPhysexam, hematology:checkHematology, chemistry:checkChemistry}[formName];
+}
+
+/* ---------------- query engine ---------------- */
+function queryKey(q){ return [q.subjectId,q.visitId||'',q.form,q.field,q.logId||''].join('|'); }
+
+function syncSystemQueries(subject, visitId, formName, issues, logId){
+  // pull existing system queries for this exact location
+  const existing = STATE.queries.filter(q=> q.subjectId===subject.id && (q.visitId||'')===(visitId||'') && q.form===formName && (q.logId||'')===(logId||'') && q.source==='System');
+  const issueFields = new Set(issues.map(i=>i.field));
+  // auto-close resolved ones
+  existing.forEach(q=>{
+    if(!issueFields.has(q.field) && (q.status==='Open'||q.status==='Answered')){
+      q.status='Closed';
+      q.history.push({at:new Date().toISOString(), note:'Auto-closed by system: data now within the expected range.'});
+    }
+  });
+  // open new ones / reopen if value changed but still failing (keep same query, update text)
+  issues.forEach(issue=>{
+    let q = existing.find(e=>e.field===issue.field && e.status!=='Closed');
+    if(q){ q.text = issue.message; }
+    else {
+      STATE.queries.push({
+        id: uid('q'), subjectId: subject.id, visitId: visitId||null, form: formName, logId: logId||null,
+        field: issue.field, text: issue.message, status:'Open', source:'System',
+        createdAt: new Date().toISOString(), history:[{at:new Date().toISOString(), note:'Query auto-generated by edit check.'}]
+      });
+    }
+  });
+}
+
+function runInitialChecks(){
+  STATE.subjects.forEach(subj=>{
+    VISITS.forEach(v=>{
+      v.forms.forEach(formName=>{
+        const rec = subj.forms[v.id+'/'+formName];
+        if(!rec) return;
+        const fn = formCheckFn(formName);
+        let issues = [];
+        if(formName==='demographics') issues = fn(rec.data, subj.visitDates[v.id]);
+        else if(formName==='hematology') issues = fn(rec.data, subj.sex);
+        else issues = fn(rec.data);
+        syncSystemQueries(subj, v.id, formName, issues, null);
+      });
+    });
+    subj.ae.forEach(ae=>{
+      const issues = checkAE(ae, subj.enrollDate);
+      syncSystemQueries(subj, null, 'ae', issues, ae.id);
+    });
+    subj.conmed.forEach(cm=>{
+      const issues = checkConmed(cm);
+      syncSystemQueries(subj, null, 'conmed', issues, cm.id);
+    });
+  });
+}
+
+function openQueryCount(){ return STATE.queries.filter(q=>q.status==='Open').length; }
+function subjectOpenQueries(subjId){ return STATE.queries.filter(q=>q.subjectId===subjId && q.status!=='Closed'); }
+function locationQueries(subjId, visitId, formName, logId){
+  return STATE.queries.filter(q=>q.subjectId===subjId && (q.visitId||'')===(visitId||'') && q.form===formName && (q.logId||'')===(logId||''));
+}
+
+/* ---------------- routing ---------------- */
+let ROUTE = {name:'dashboard'};
+function navigate(name, params){
+  location.hash = '#/'+name+(params?('/'+params.join('/')):'');
+}
+function parseHash(){
+  const h = location.hash.replace(/^#\/?/, '');
+  const parts = h.split('/').filter(Boolean);
+  if(parts.length===0) return {name:'dashboard'};
+  if(parts[0]==='subject' && parts[1]){
+    if(parts[2]==='visit' && parts[3]) return {name:'subjectVisit', subjectId:parts[1], visitId:parts[3]};
+    if(parts[2]==='ae') return {name:'subjectAE', subjectId:parts[1]};
+    if(parts[2]==='conmed') return {name:'subjectConmed', subjectId:parts[1]};
+    return {name:'subjectOverview', subjectId:parts[1]};
+  }
+  return {name:parts[0]};
+}
+window.addEventListener('hashchange', render);
+
+function jumpToSubject(q){
+  q=(q||'').trim();
+  if(!q) return;
+  const s = STATE.subjects.find(s=>s.subjectId.toLowerCase()===q.toLowerCase() || s.subjectId.toLowerCase().includes(q.toLowerCase()));
+  if(s) navigate('subject', [s.id]);
+  else toast('No subject matches "'+q+'"');
+}
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarScrim').classList.toggle('show'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarScrim').classList.remove('show'); }
+
+let toastTimer=null;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function findSubject(id){ return STATE.subjects.find(s=>s.id===id); }
+
+/* ---------------- status helpers ---------------- */
+function subjectStatusPill(status){
+  const map = {Enrolled:'accent', Completed:'good', 'Screen Failed':'neutral', Discontinued:'crit', Withdrawn:'warn'};
+  return `<span class="pill ${map[status]||'neutral'}">${esc(status)}</span>`;
+}
+function cellStatus(subj, visitId, formName){
+  const rec = subj.forms[visitId+'/'+formName];
+  const v = VISITS.find(v=>v.id===visitId);
+  if(!subj.visitDates[visitId]) return 'na';
+  if(!rec) return 'notstarted';
+  const qs = locationQueries(subj.id, visitId, formName, null);
+  if(qs.some(q=>q.status==='Open')) return 'query';
+  if(qs.some(q=>q.status==='Answered')) return 'answered';
+  return 'clean';
+}
+const CELL_LABEL = {na:'—', notstarted:'', clean:'✓', query:'!', answered:'?'};
+
+/* ================= RENDERERS ================= */
+
+function setActiveNav(name){
+  document.querySelectorAll('.navlink[data-route]').forEach(el=>{
+    el.classList.toggle('active', el.dataset.route===name);
+  });
+}
+function renderNavCounts(){
+  document.getElementById('navSubjCount').textContent = STATE.subjects.length;
+  const oc = openQueryCount();
+  const el = document.getElementById('navQueryCount');
+  el.textContent = oc; el.style.display = oc>0 ? '' : 'none';
+}
+
+function render(){
+  ROUTE = parseHash();
+  closeSidebar();
+  renderNavCounts();
+  const content = document.getElementById('content');
+  const title = document.getElementById('pageTitle');
+  const sub = document.getElementById('pageSub');
+  let topNav = ROUTE.name;
+  if(['subjectOverview','subjectVisit','subjectAE','subjectConmed'].includes(ROUTE.name)) topNav='subjects';
+  setActiveNav(topNav);
+
+  if(ROUTE.name==='dashboard'){ title.textContent='Dashboard'; sub.textContent='Study-level snapshot'; content.innerHTML = renderDashboard(); }
+  else if(ROUTE.name==='subjects'){ title.textContent='Subjects'; sub.textContent=STATE.subjects.length+' enrolled across '+SITES.length+' sites'; content.innerHTML = renderSubjectsList(); }
+  else if(ROUTE.name==='queries'){ title.textContent='Query Workspace'; sub.textContent=openQueryCount()+' open query item(s)'; content.innerHTML = renderQueries(); }
+  else if(ROUTE.name==='study'){ title.textContent='Study Info'; sub.textContent=STATE.protocol.id; content.innerHTML = renderStudy(); }
+  else if(ROUTE.name==='subjectOverview'){ const s=findSubject(ROUTE.subjectId); if(!s) return navigate('subjects'); title.textContent=s.subjectId; sub.textContent='Site '+s.site; content.innerHTML = renderSubjectOverview(s); }
+  else if(ROUTE.name==='subjectVisit'){ const s=findSubject(ROUTE.subjectId); if(!s) return navigate('subjects'); const v=VISITS.find(v=>v.id===ROUTE.visitId); title.textContent=s.subjectId+' · '+(v?v.label:''); sub.textContent='Visit forms'; content.innerHTML = renderSubjectVisit(s, ROUTE.visitId); }
+  else if(ROUTE.name==='subjectAE'){ const s=findSubject(ROUTE.subjectId); if(!s) return navigate('subjects'); title.textContent=s.subjectId+' · Adverse Events'; sub.textContent='Log form'; content.innerHTML = renderLog(s,'ae'); }
+  else if(ROUTE.name==='subjectConmed'){ const s=findSubject(ROUTE.subjectId); if(!s) return navigate('subjects'); title.textContent=s.subjectId+' · Concomitant Meds'; sub.textContent='Log form'; content.innerHTML = renderLog(s,'conmed'); }
+  else { navigate('dashboard'); }
+
+  wireContentEvents();
+}
+
+function renderDashboard(){
+  const total = STATE.subjects.length;
+  const byStatus = {};
+  STATE.subjects.forEach(s=> byStatus[s.status]=(byStatus[s.status]||0)+1 );
+  const totalForms = STATE.subjects.reduce((sum,s)=> sum + VISITS.reduce((a,v)=> a + (s.visitDates[v.id]? v.forms.length:0), 0), 0);
+  const savedForms = STATE.subjects.reduce((sum,s)=> sum + Object.keys(s.forms).length, 0);
+  const openQ = STATE.queries.filter(q=>q.status==='Open').length;
+  const answeredQ = STATE.queries.filter(q=>q.status==='Answered').length;
+  const closedQ = STATE.queries.filter(q=>q.status==='Closed').length;
+  const pctComplete = totalForms? Math.round(savedForms/totalForms*100) : 0;
+
+  const bySubjOpen = STATE.subjects.map(s=>({s, n:subjectOpenQueries(s.id).length})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,6);
+
+  return `
+    <div class="grid cards" style="margin-bottom:20px;">
+      <div class="card"><div class="label">Subjects enrolled</div><div class="value tnum">${total}</div><div class="foot">${SITES.length} sites</div></div>
+      <div class="card"><div class="label">Forms saved</div><div class="value tnum">${pctComplete}%</div><div class="foot">${savedForms} of ${totalForms} expected forms</div></div>
+      <div class="card"><div class="label">Open queries</div><div class="value tnum ${openQ>0?'crit':'good'}">${openQ}</div><div class="foot">${answeredQ} answered · ${closedQ} closed</div></div>
+      <div class="card"><div class="label">Completed subjects</div><div class="value tnum good">${byStatus['Completed']||0}</div><div class="foot">of ${total} total</div></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1.3fr 1fr;align-items:start;">
+      <div class="panel">
+        <div class="panel-head"><h2>Subject status</h2><span class="sub">by disposition</span></div>
+        <div class="panel-body">
+          <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));">
+            ${['Enrolled','Completed','Screen Failed','Discontinued','Withdrawn'].map(st=>`
+              <div>
+                <div style="font-size:22px;font-weight:700;font-family:'IBM Plex Mono',monospace;">${byStatus[st]||0}</div>
+                <div style="margin-top:2px;">${subjectStatusPill(st)}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Subjects needing attention</h2></div>
+        <div class="panel-body" style="padding:8px 0;">
+          ${ bySubjOpen.length===0 ? '<div class="empty" style="padding:20px;">No open or answered queries right now.</div>' :
+            bySubjOpen.map(x=>`
+              <div class="navlink" style="color:var(--ink);padding:8px 18px;border-radius:0;" onclick="navigate('subject',['${x.s.id}'])">
+                <span class="mono">${esc(x.s.subjectId)}</span>
+                <span class="count hot" style="margin-left:auto;">${x.n}</span>
+              </div>`).join('')
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-head"><h2>What to practice</h2></div>
+      <div class="panel-body" style="font-size:13px;color:var(--muted);line-height:1.7;">
+        This sample study already has some data entered — including a few deliberate data-entry problems (out-of-range vitals, a consent date after the visit, an AE that starts before enrollment, missing required fields). Open <a onclick="navigate('queries')" style="color:var(--accent-ink);cursor:pointer;font-weight:600;">Query Workspace</a> to see what the system already flagged, or open any <a onclick="navigate('subjects')" style="color:var(--accent-ink);cursor:pointer;font-weight:600;">subject</a> and enter data yourself — new entries are checked the moment you save a form, exactly like a live EDC edit check.
+      </div>
+    </div>
+  `;
+}
+
+function renderSubjectsList(){
+  const rows = STATE.subjects.map(s=>{
+    const oq = subjectOpenQueries(s.id).length;
+    const visitsReached = VISITS.filter(v=>s.visitDates[v.id]).length;
+    return `<tr class="rowlink" onclick="navigate('subject',['${s.id}'])">
+      <td class="mono">${esc(s.subjectId)}</td>
+      <td>${SITES.find(x=>x.id===s.site)?.name||s.site}</td>
+      <td>${subjectStatusPill(s.status)}</td>
+      <td class="tnum">${visitsReached} / ${VISITS.length}</td>
+      <td class="tnum">${s.ae.length}</td>
+      <td>${ oq>0 ? `<span class="pill crit">${oq} open</span>` : '<span class="pill good">clear</span>' }</td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="panel">
+    <div class="panel-head"><h2>All subjects</h2><span class="sub">Click a row to open the subject casebook</span></div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Subject</th><th>Site</th><th>Status</th><th>Visits reached</th><th>AEs</th><th>Queries</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderSubjectOverview(s){
+  const matrixRows = VISITS.map(v=>`
+    <tr>
+      <td class="name">${esc(v.label)}</td>
+      ${v.forms.map(f=>{
+        const st = cellStatus(s, v.id, f);
+        return `<td title="${FORM_META[f].label}"><div class="cell ${st}" onclick="${st==='na'?'':`navigate('subject',['${s.id}','visit','${v.id}'])`}">${CELL_LABEL[st]}</div></td>`;
+      }).join('')}
+    </tr>`).join('');
+  const allForms = ['vitals','physexam','hematology','chemistry','demographics'].filter(f=>VISITS.some(v=>v.forms.includes(f)));
+  // build header uniquely per column since forms differ by visit — instead show per-visit-form grid columns = union across visits actually differs; simplify: one row per visit, columns = that visit's own forms listed inline
+  const age = ageFrom(s.dob, todayStr());
+  return `
+    <div class="crumbs"><a onclick="navigate('subjects')">Subjects</a><span class="sep">/</span><span class="current mono">${esc(s.subjectId)}</span></div>
+    <div class="grid" style="grid-template-columns:280px 1fr;align-items:start;">
+      <div class="panel">
+        <div class="panel-head"><h2>Subject details</h2></div>
+        <div class="panel-body">
+          <dl class="kv">
+            <dt>Subject ID</dt><dd class="mono">${esc(s.subjectId)}</dd>
+            <dt>Site</dt><dd>${esc(SITES.find(x=>x.id===s.site)?.name)}</dd>
+            <dt>Status</dt><dd>${subjectStatusPill(s.status)}</dd>
+            <dt>Sex</dt><dd>${esc(s.sex)}</dd>
+            <dt>Date of birth</dt><dd>${fmtDate(s.dob)} (${age})</dd>
+            <dt>Enrollment date</dt><dd>${fmtDate(s.enrollDate)}</dd>
+            <dt>Open queries</dt><dd>${subjectOpenQueries(s.id).length ? `<span class="pill crit">${subjectOpenQueries(s.id).length} open</span>` : '<span class="pill good">clear</span>'}</dd>
+          </dl>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+            <button class="btn" onclick="navigate('subject',['${s.id}','ae'])">Adverse events (${s.ae.length}) →</button>
+            <button class="btn" onclick="navigate('subject',['${s.id}','conmed'])">Concomitant meds (${s.conmed.length}) →</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Visit &amp; form status</h2><span class="sub">✓ clean · ! open query · ? answered · — not applicable</span></div>
+        <div class="panel-body tablewrap">
+          <div style="display:flex;flex-direction:column;gap:2px;">
+          ${VISITS.map(v=>{
+            const reached = !!s.visitDates[v.id];
+            return `<div style="display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--line);">
+              <div style="width:150px;font-weight:600;font-size:12.8px;">${esc(v.label)}</div>
+              <div style="font-size:11px;color:var(--muted);width:90px;">${reached?fmtDate(s.visitDates[v.id]):'not reached'}</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">
+                ${ reached ? v.forms.map(f=>{
+                    const st = cellStatus(s,v.id,f);
+                    const stylemap={notstarted:'neutral',clean:'good',query:'crit',answered:'warn',na:'neutral'};
+                    return `<span class="pill ${stylemap[st]}" style="cursor:pointer;" onclick="navigate('subject',['${s.id}','visit','${v.id}'])">${FORM_META[f].label}${st==='notstarted'?' · not started':st==='query'?' · query':st==='answered'?' · answered':st==='clean'?' · saved':''}</span>`;
+                  }).join('') : '<span style="color:var(--muted);font-size:12px;">—</span>' }
+              </div>
+            </div>`;
+          }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function fieldRow(f, values, issues, formName, visitId, subjId, logId){
+  const issue = issues.find(i=>i.field===f.name);
+  const val = fieldValue(values[f.name]);
+  const inputId = `f_${f.name}`;
+  let input='';
+  if(f.type==='select'){
+    input = `<select id="${inputId}" data-field="${f.name}">${f.options.map(o=>`<option value="${esc(o)}" ${o===val?'selected':''}>${esc(o)}</option>`).join('')}<option value="" ${val===''?'selected':''} hidden></option></select>`;
+  } else if(f.type==='textarea'){
+    input = `<textarea id="${inputId}" data-field="${f.name}">${esc(val)}</textarea>`;
+  } else {
+    input = `<input id="${inputId}" data-field="${f.name}" type="${f.type}" value="${esc(val)}">`;
+  }
+  const qs = locationQueries(subjId, visitId, formName, logId).filter(q=>q.field===f.name && q.status!=='Closed');
+  const manualQ = qs.find(q=>q.source==='Manual');
+  return `
+  <div class="field-row">
+    <label>${esc(f.label)} ${(f.required||( f.requiredIf))?'<span class="req">*</span>':''}</label>
+    <div class="field-input">
+      ${input}
+      ${issue?`<div class="field-issue">⚠ ${esc(issue.message)}</div>`:''}
+      ${manualQ?`<div class="field-issue" style="color:var(--warn);background:var(--warn-soft);">✎ Manual query: ${esc(manualQ.text)}</div>`:''}
+    </div>
+    <button type="button" class="flagbtn ${manualQ?'active':''}" title="Raise a manual query on this field" onclick="raiseManualQuery('${subjId}','${visitId||''}','${formName}','${f.name}','${logId||''}')">🏳</button>
+  </div>`;
+}
+
+function renderSubjectVisit(s, visitId){
+  const v = VISITS.find(v=>v.id===visitId);
+  if(!v || !s.visitDates[visitId]){
+    return `<div class="empty"><div class="big">—</div>This visit has not been reached for this subject.</div>`;
+  }
+  const tabs = v.forms.map(f=>`<button class="tab" data-form="${f}">${FORM_META[f].label}</button>`).join('');
+  return `
+    <div class="crumbs"><a onclick="navigate('subjects')">Subjects</a><span class="sep">/</span><a onclick="navigate('subject',['${s.id}'])">${esc(s.subjectId)}</a><span class="sep">/</span><span class="current">${esc(v.label)}</span></div>
+    <div class="panel">
+      <div class="panel-head"><h2>${esc(v.label)}</h2><span class="sub">Visit date: ${fmtDate(s.visitDates[v.id])}</span></div>
+      <div class="panel-body">
+        <div class="tabs" id="visitTabs">${tabs}</div>
+        <div id="visitFormArea"></div>
+      </div>
+    </div>
+  `;
+}
+
+function loadVisitForm(s, v, formName){
+  const schema = SCHEMAS[formName];
+  const rec = s.forms[v.id+'/'+formName];
+  const values = Object.assign({}, rec ? rec.data : {});
+  let issues = [];
+  if(rec){
+    if(formName==='demographics') issues = checkDemographics(values, s.visitDates[v.id]);
+    else if(formName==='hematology') issues = checkHematology(values, s.sex);
+    else issues = formCheckFn(formName)(values);
+  }
+  const area = document.getElementById('visitFormArea');
+  area.innerHTML = `
+    <form id="visitForm" data-form="${formName}">
+      ${schema.map(f=>fieldRow(f, values, issues, formName, v.id, s.id, null)).join('')}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+        <span style="font-size:11.5px;color:var(--muted);">${rec? 'Last saved '+new Date(rec.savedAt).toLocaleString() : 'Not yet entered'}</span>
+        <button type="submit" class="btn primary">Save &amp; run edit checks</button>
+      </div>
+    </form>`;
+  area.querySelector('form').addEventListener('submit', function(e){
+    e.preventDefault();
+    saveVisitForm(s, v, formName, schema);
+  });
+}
+
+function collectFormValues(schema){
+  const values = {};
+  schema.forEach(f=>{
+    const el = document.getElementById('f_'+f.name);
+    if(!el) return;
+    values[f.name] = el.value;
+  });
+  return values;
+}
+
+function saveVisitForm(s, v, formName, schema){
+  const values = collectFormValues(schema);
+  s.forms[v.id+'/'+formName] = {data:values, savedAt:new Date().toISOString()};
+  let issues = [];
+  if(formName==='demographics') issues = checkDemographics(values, s.visitDates[v.id]);
+  else if(formName==='hematology') issues = checkHematology(values, s.sex);
+  else issues = formCheckFn(formName)(values);
+  syncSystemQueries(s, v.id, formName, issues, null);
+  saveState();
+  toast(issues.length ? `Saved — ${issues.length} edit-check issue(s) raised as ${issues.length===1?'a query':'queries'}` : 'Saved — no issues found');
+  loadVisitForm(s, v, formName);
+  renderNavCounts();
+}
+
+function renderLog(s, kind){
+  const schema = kind==='ae' ? AE_SCHEMA : CONMED_SCHEMA;
+  const items = s[kind];
+  const label = kind==='ae' ? 'Adverse Events' : 'Concomitant Medications';
+  const rows = items.map(item=>{
+    const qs = locationQueries(s.id, null, kind, item.id).filter(q=>q.status!=='Closed');
+    const cells = kind==='ae'
+      ? `<td>${esc(item.term)}</td><td>${fmtDate(item.startDate)}</td><td>${item.ongoing==='Yes'?'Ongoing':fmtDate(item.endDate)}</td><td>${esc(item.severity)}</td><td>${item.serious==='Yes'?'<span class="pill crit">Yes</span>':'No'}</td>`
+      : `<td>${esc(item.medication)}</td><td>${esc(item.indication)}</td><td>${esc(item.dose)}</td><td>${fmtDate(item.startDate)}</td><td>${item.ongoing==='Yes'?'Ongoing':fmtDate(item.endDate)}</td>`;
+    return `<tr>
+      ${cells}
+      <td>${qs.length? `<span class="pill crit">${qs.length} query</span>` : '<span class="pill good">clean</span>'}</td>
+      <td class="logtable-actions">
+        <button class="btn small" onclick="editLogItem('${s.id}','${kind}','${item.id}')">Edit</button>
+        <button class="btn small" onclick="deleteLogItem('${s.id}','${kind}','${item.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+  const head = kind==='ae'
+    ? '<th>Term</th><th>Start</th><th>End</th><th>Severity</th><th>Serious</th>'
+    : '<th>Medication</th><th>Indication</th><th>Dose</th><th>Start</th><th>End</th>';
+  return `
+    <div class="crumbs"><a onclick="navigate('subjects')">Subjects</a><span class="sep">/</span><a onclick="navigate('subject',['${s.id}'])">${esc(s.subjectId)}</a><span class="sep">/</span><span class="current">${esc(label)}</span></div>
+    <div class="panel">
+      <div class="panel-head"><h2>${esc(label)} log</h2><button class="btn primary" style="margin-left:auto;" onclick="editLogItem('${s.id}','${kind}',null)">+ Add entry</button></div>
+      <div class="tablewrap">
+        ${items.length? `<table><thead><tr>${head}<th>Queries</th><th></th></tr></thead><tbody>${rows}</tbody></table>` : `<div class="empty"><div class="big">—</div>No ${label.toLowerCase()} recorded yet.</div>`}
+      </div>
+      <div class="panel-body" id="logFormArea"></div>
+    </div>
+  `;
+}
+
+function editLogItem(subjId, kind, itemId){
+  const s = findSubject(subjId);
+  const schema = kind==='ae'?AE_SCHEMA:CONMED_SCHEMA;
+  const item = itemId ? s[kind].find(x=>x.id===itemId) : {};
+  const values = Object.assign({}, item);
+  const issues = itemId ? (kind==='ae'?checkAE(values,s.enrollDate):checkConmed(values)) : [];
+  const area = document.getElementById('logFormArea');
+  area.innerHTML = `
+    <div style="border-top:1px solid var(--line);padding-top:14px;margin-top:6px;">
+      <h3 style="font-size:13.5px;margin-bottom:6px;">${itemId?'Edit entry':'New entry'}</h3>
+      <form id="logForm">
+        ${schema.map(f=>fieldRow(f, values, issues, kind, null, subjId, itemId||'__new__')).join('')}
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+          <button type="button" class="btn ghost" onclick="document.getElementById('logFormArea').innerHTML=''">Cancel</button>
+          <button type="submit" class="btn primary">Save &amp; run edit checks</button>
+        </div>
+      </form>
+    </div>`;
+  area.querySelector('form').addEventListener('submit', function(e){
+    e.preventDefault();
+    const newValues = collectFormValues(schema);
+    let id = itemId;
+    if(!id){ id = uid(kind); newValues.id = id; s[kind].push(newValues); }
+    else { Object.assign(item, newValues); }
+    const issues2 = kind==='ae'?checkAE(newValues,s.enrollDate):checkConmed(newValues);
+    // if new item, the query-sync location uses the real id now
+    syncSystemQueries(s, null, kind, issues2, id);
+    saveState();
+    toast(issues2.length? `Saved — ${issues2.length} issue(s) raised as queries` : 'Saved — no issues found');
+    render();
+  });
+}
+function deleteLogItem(subjId, kind, itemId){
+  if(!confirm('Delete this log entry? Related queries will remain in the query history.')) return;
+  const s = findSubject(subjId);
+  s[kind] = s[kind].filter(x=>x.id!==itemId);
+  saveState();
+  render();
+}
+
+function raiseManualQuery(subjId, visitId, formName, field, logId){
+  const existing = locationQueries(subjId, visitId, formName, logId||null).find(q=>q.field===field && q.status!=='Closed' && q.source==='Manual');
+  if(existing){ navigate('queries'); return; }
+  const text = prompt('Query text to send to the site:');
+  if(!text) return;
+  STATE.queries.push({
+    id:uid('q'), subjectId:subjId, visitId:visitId||null, form:formName, logId:logId||null,
+    field, text, status:'Open', source:'Manual',
+    createdAt:new Date().toISOString(), history:[{at:new Date().toISOString(), note:'Manual query raised.'}]
+  });
+  saveState();
+  toast('Manual query raised');
+  render();
+}
+
+function renderQueries(){
+  const statusFilter = window.__qStatusFilter || 'all';
+  const sourceFilter = window.__qSourceFilter || 'all';
+  let list = STATE.queries.slice().sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+  if(statusFilter!=='all') list = list.filter(q=>q.status===statusFilter);
+  if(sourceFilter!=='all') list = list.filter(q=>q.source===sourceFilter);
+
+  const cards = list.map(q=>{
+    const s = findSubject(q.subjectId);
+    const visitLabel = q.visitId ? VISITS.find(v=>v.id===q.visitId)?.label : (q.form==='ae'?'AE log':q.form==='conmed'?'ConMed log':'');
+    const statusPill = {Open:'crit',Answered:'warn',Closed:'good'}[q.status];
+    return `
+      <div class="querycard">
+        <div class="qtop">
+          <div>
+            <span class="pill ${q.source==='System'?'accent':'neutral'}">${q.source}</span>
+            <span class="pill ${statusPill}" style="margin-left:6px;">${q.status}</span>
+            <div class="qloc">${esc(s?.subjectId||'—')} · ${esc(visitLabel||'')} · ${FORM_META[q.form]?.label||q.form} → ${esc(q.field)}</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);">${new Date(q.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</div>
+        </div>
+        <div class="qtext">${esc(q.text)}</div>
+        ${q.history.length>1 ? `<div class="qmeta">${q.history.slice(1).map(h=>esc(h.note)).join(' · ')}</div>` : ''}
+        <div class="qactions">
+          <button class="btn small" onclick="navigate(${ q.visitId ? `'subjectVisit'` : `'subject'` })" style="display:none;"></button>
+          <button class="btn small" onclick="goToQuery('${q.id}')">Open location</button>
+          ${q.status==='Open' ? `<button class="btn small" onclick="respondQuery('${q.id}')">Respond</button>` : ''}
+          ${q.status==='Answered' ? `<button class="btn small" onclick="setQueryStatus('${q.id}','Closed')">Close query</button>` : ''}
+          ${q.status!=='Closed' ? `<button class="btn small ghost" onclick="setQueryStatus('${q.id}','Closed')">Mark closed</button>` : `<button class="btn small ghost" onclick="setQueryStatus('${q.id}','Open')">Reopen</button>`}
+        </div>
+        <div id="respondArea_${q.id}"></div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="filterbar">
+      <select onchange="window.__qStatusFilter=this.value;render();">
+        <option value="all" ${statusFilter==='all'?'selected':''}>All statuses</option>
+        <option value="Open" ${statusFilter==='Open'?'selected':''}>Open</option>
+        <option value="Answered" ${statusFilter==='Answered'?'selected':''}>Answered</option>
+        <option value="Closed" ${statusFilter==='Closed'?'selected':''}>Closed</option>
+      </select>
+      <select onchange="window.__qSourceFilter=this.value;render();">
+        <option value="all" ${sourceFilter==='all'?'selected':''}>System + Manual</option>
+        <option value="System" ${sourceFilter==='System'?'selected':''}>System-generated</option>
+        <option value="Manual" ${sourceFilter==='Manual'?'selected':''}>Manual</option>
+      </select>
+      <span style="margin-left:auto;font-size:12px;color:var(--muted);align-self:center;">${list.length} of ${STATE.queries.length} queries</span>
+    </div>
+    ${list.length? cards : `<div class="empty"><div class="big">✓</div>No queries match this filter.</div>`}
+  `;
+}
+
+function goToQuery(qId){
+  const q = STATE.queries.find(x=>x.id===qId);
+  if(!q) return;
+  if(q.form==='ae') navigate('subject',[q.subjectId,'ae']);
+  else if(q.form==='conmed') navigate('subject',[q.subjectId,'conmed']);
+  else navigate('subject',[q.subjectId,'visit',q.visitId]);
+}
+function respondQuery(qId){
+  const area = document.getElementById('respondArea_'+qId);
+  area.innerHTML = `<textarea id="resp_${qId}" placeholder="Site response…"></textarea>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn small primary" onclick="submitResponse('${qId}')">Submit response</button>
+      <button class="btn small ghost" onclick="document.getElementById('respondArea_${qId}').innerHTML=''">Cancel</button>
+    </div>`;
+}
+function submitResponse(qId){
+  const text = document.getElementById('resp_'+qId).value.trim();
+  if(!text){ toast('Enter a response first'); return; }
+  const q = STATE.queries.find(x=>x.id===qId);
+  q.status='Answered';
+  q.history.push({at:new Date().toISOString(), note:'Site response: '+text});
+  saveState();
+  toast('Response submitted — query marked Answered');
+  render();
+}
+function setQueryStatus(qId, status){
+  const q = STATE.queries.find(x=>x.id===qId);
+  q.status = status;
+  q.history.push({at:new Date().toISOString(), note:'Status set to '+status+'.'});
+  saveState();
+  render();
+}
+
+function renderStudy(){
+  const p = STATE.protocol;
+  return `
+  <div class="grid" style="grid-template-columns:1fr 1fr;align-items:start;">
+    <div class="panel">
+      <div class="panel-head"><h2>Protocol</h2></div>
+      <div class="panel-body">
+        <dl class="kv">
+          <dt>Protocol ID</dt><dd class="mono">${esc(p.id)}</dd>
+          <dt>Title</dt><dd>${esc(p.title)}</dd>
+          <dt>Sponsor</dt><dd>${esc(p.sponsor)}</dd>
+          <dt>Phase</dt><dd>${esc(p.phase)}</dd>
+          <dt>Indication</dt><dd>${esc(p.indication)}</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Sites</h2></div>
+      <div class="tablewrap">
+        <table><thead><tr><th>Site</th><th>Name</th><th>Subjects</th></tr></thead>
+        <tbody>${SITES.map(site=>`<tr><td class="mono">${site.id}</td><td>${esc(site.name)}</td><td class="tnum">${STATE.subjects.filter(s=>s.site===site.id).length}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:16px;">
+    <div class="panel-head"><h2>Visit schedule &amp; forms collected</h2></div>
+    <div class="tablewrap">
+      <table><thead><tr><th>Visit</th><th>Nominal day</th><th>Forms</th></tr></thead>
+      <tbody>${VISITS.map(v=>`<tr><td>${esc(v.label)}</td><td class="tnum">${v.day>0?'Day '+v.day:'Day '+v.day}</td><td>${v.forms.map(f=>FORM_META[f].label).join(', ')}</td></tr>`).join('')}
+      <tr><td>Any time</td><td>—</td><td>Adverse Events, Concomitant Medications (subject-level logs)</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:16px;">
+    <div class="panel-head"><h2>About this sandbox</h2></div>
+    <div class="panel-body" style="font-size:13px;color:var(--muted);line-height:1.7;">
+      TrialBench is a self-contained practice environment for the data-entry and data-management side of clinical trials — the kind of edit checks, query lifecycle (Open → Answered → Closed) and subject casebook you'd see in a real EDC system, minus any real patient data. Everything you enter is stored only in this browser (nothing is sent anywhere), so it's safe to experiment freely. Use "Reset sample study" in the sidebar at any time to restore the original seed data.
+    </div>
+  </div>`;
+}
+
+function wireContentEvents(){
+  document.querySelectorAll('.navlink[data-route]').forEach(el=>{
+    el.onclick = ()=> navigate(el.dataset.route);
+  });
+  const visitTabs = document.getElementById('visitTabs');
+  if(visitTabs){
+    const s = findSubject(ROUTE.subjectId);
+    const v = VISITS.find(v=>v.id===ROUTE.visitId);
+    const tabs = visitTabs.querySelectorAll('.tab');
+    let active = window.__lastFormTab && v.forms.includes(window.__lastFormTab) ? window.__lastFormTab : v.forms[0];
+    function activate(formName){
+      active = formName; window.__lastFormTab = formName;
+      tabs.forEach(t=>t.classList.toggle('active', t.dataset.form===formName));
+      loadVisitForm(s, v, formName);
+    }
+    tabs.forEach(t=> t.onclick = ()=> activate(t.dataset.form));
+    activate(active);
+  }
+}
+
+/* ---------------- boot ---------------- */
+loadState();
+render();
+</script>
+
+</body></html>
