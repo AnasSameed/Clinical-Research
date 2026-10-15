@@ -1,0 +1,31 @@
+SUBJID,AETERM,AEBODSYS,AESEV,AESTDTC,AESER
+0002,Diarrhoea,Gastrointestinal disorders,MILD,2026-03-09,N
+0002,Nausea,Gastrointestinal disorders,MODERATE,2026-03-12,N
+0002,Rash,Skin and subcutaneous tissue disorders,MILD,2026-02-19,N
+0004,Fatigue,General disorders and administration site conditions,MODERATE,2026-02-26,N
+0007,Diarrhoea,Gastrointestinal disorders,SEVERE,2026-02-06,N
+0007,Headache,Nervous system disorders,SEVERE,2026-01-27,N
+0009,Upper respiratory tract infection,Infections and infestations,SEVERE,2026-03-16,N
+0011,Rash,Skin and subcutaneous tissue disorders,MILD,2026-03-14,N
+0012,Dizziness,Nervous system disorders,MILD,2026-02-05,N
+0012,Upper respiratory tract infection,Infections and infestations,MILD,2026-02-07,N
+0012,Rash,Skin and subcutaneous tissue disorders,MILD,2026-01-23,N
+0013,Diarrhoea,Gastrointestinal disorders,MODERATE,2026-03-09,N
+0014,Nausea,Gastrointestinal disorders,MODERATE,2026-02-28,N
+0015,Upper respiratory tract infection,Infections and infestations,MILD,2026-02-02,N
+0015,Fatigue,General disorders and administration site conditions,MODERATE,2026-02-01,N
+0015,Nausea,Gastrointestinal disorders,MODERATE,2026-02-22,N
+0016,Headache,Nervous system disorders,MILD,2026-02-24,N
+0017,Upper respiratory tract infection,Infections and infestations,MODERATE,2026-02-14,N
+0017,Fatigue,General disorders and administration site conditions,MODERATE,2026-03-14,N
+0017,Dizziness,Nervous system disorders,MILD,2026-03-15,N
+0018,Dizziness,Nervous system disorders,MODERATE,2026-01-22,N
+0018,Headache,Nervous system disorders,MILD,2026-02-28,N
+0018,Nausea,Gastrointestinal disorders,MILD,2026-03-03,N
+0021,Nausea,Gastrointestinal disorders,MILD,2026-02-02,N
+0021,Upper respiratory tract infection,Infections and infestations,MILD,2026-02-08,N
+0021,Fatigue,General disorders and administration site conditions,MODERATE,2026-01-29,N
+0022,Diarrhoea,Gastrointestinal disorders,MILD,2026-01-24,N
+0024,Headache,Nervous system disorders,SEVERE,2026-01-28,N
+0001,Headache,Nervous system disorders,MILD,2026-01-30,N
+0005,Nausea,Gastrointestinal disorders,MILD,2026-02-01,N
