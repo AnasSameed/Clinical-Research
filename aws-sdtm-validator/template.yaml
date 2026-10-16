@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Serverless SDTM CSV validator. Upload a CSV to s3://<bucket>/incoming/ and a
+  Lambda function writes a QC report (JSON + HTML) to s3://<bucket>/reports/.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: sdtm-csv-validator
+    AllowedPattern: "[a-z0-9-]+"
+    Description: Lower-case name used for the bucket, function and role.
+  ObjectExpiryDays:
+    Type: Number
+    Default: 30
+    Description: Uploaded files and reports are deleted after this many days (keeps storage cost near zero).
+
+Resources:
+  # ---------- Lambda execution role (least privilege) ----------
+  ValidatorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-lambda-role-${AWS::Region}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: s3-read-incoming-write-reports
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${ProjectName}-${AWS::AccountId}-${AWS::Region}/incoming/*"
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub "arn:aws:s3:::${ProjectName}-${AWS::AccountId}-${AWS::Region}/reports/*"
+
+  # ---------- Lambda function ----------
+  # The stack starts with a tiny placeholder; scripts/deploy.sh uploads the real code.
+  ValidatorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}"
+      Runtime: python3.12
+      Architectures: [arm64]
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt ValidatorRole.Arn
+      MemorySize: 256
+      Timeout: 60
+      Environment:
+        Variables:
+          REPORT_PREFIX: reports/
+          MAX_FILE_BYTES: "20971520"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              raise RuntimeError("Placeholder code - run scripts/deploy.sh to upload the validator.")
+
+  ValidatorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}"
+      RetentionInDays: 7
+
+  S3InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ValidatorFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      # Bucket ARN is built from its name (not !GetAtt) to avoid a circular dependency.
+      SourceArn: !Sub "arn:aws:s3:::${ProjectName}-${AWS::AccountId}-${AWS::Region}"
+
+  # ---------- Data bucket ----------
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: S3InvokePermission
+    Properties:
+      BucketName: !Sub "${ProjectName}-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-old-objects
+            Status: Enabled
+            ExpirationInDays: !Ref ObjectExpiryDays
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ValidatorFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - { Name: prefix, Value: incoming/ }
+                  - { Name: suffix, Value: .csv }
+
+Outputs:
+  BucketName:
+    Value: !Ref DataBucket
+  FunctionName:
+    Value: !Ref ValidatorFunction
+  UploadExample:
+    Value: !Sub "aws s3 cp dm.csv s3://${DataBucket}/incoming/dm.csv"
